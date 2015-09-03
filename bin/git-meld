@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# TODO: ensure merge succeeds before hiding
+# TODO: make all the flags / params for merge work too!
+# TODO: use the git-hide command to do the hiding!
+# TODO: print good error messages
+
+branch=$1
+
+git merge --squash $branch
+git update-ref ref/hidden/$branch $branch
+git branch -D $branch

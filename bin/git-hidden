@@ -1,0 +1,5 @@
+#!/bin/bash
+gitbasedir=$(git rev-parse --show-toplevel)
+githiddendir=$gitbasedir/.git/refs/hidden
+mkdir -p $githiddendir 
+ls $githiddendir

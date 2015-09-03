@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# TODO: check for params (exactly one branch name)
+# TODO: print usage if needed
+# TODO: check validity of input / is it a path
+# TODO: ensure that hiding a branch doesn't overwrite another of the same name
+# TODO: ensure that if hide fails, branch is not deleted
+
+branch=$1
+git update-ref refs/hidden/$branch $branch
+git branch -D $branch > /dev/null

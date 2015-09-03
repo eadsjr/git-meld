@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# TODO: check for params (exactly one branch name)
+# TODO: defensive logic: see hide
+# TODO: Check that this exists
+
+branch=$1
+gitbasedir=$(git rev-parse --show-toplevel)
+githiddendir=$gitbasedir/.git/refs/hidden
+mkdir -p $githiddendir
+git update-ref refs/heads/$branch refs/hidden/$branch
