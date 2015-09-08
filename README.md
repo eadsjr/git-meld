@@ -1,3 +1,8 @@
+WARNING: This does not have all the safety features implemented just yet. Use with appropriate caution.
+
+
+
+
 # git-meld
 A simple extension to git that enables cleaner branching workflow without losing history.
 
@@ -32,6 +37,7 @@ If you find a bug please report it in [the 'Issues' page on github](https://gith
 
 If you like git-meld, or use it regularly, or have other constructive feedback please contact me at [jeads442@gmail.com](mailto:jeads442@gmail.com)
 
+Don't forget to star it if it helps you! This helps others find useful tools like this one.
 
 # TODO:
 * Add pictures to README to make it more sensible
