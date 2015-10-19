@@ -1,11 +1,61 @@
 #!/bin/bash
+# This command reveals a previously hidden branch, so that it displays with the `git branch` command
 
-# TODO: check for params (exactly one branch name)
-# TODO: defensive logic: see hide
-# TODO: Check that this exists
+# Exit codes
+EX_USAGE=3
+EX_MISSING_TARGET=4
+EX_UPDATE_REF_FAILED_WITH_EC=6
+EX_UPDATE_REF_FAILED_NO_EC=7
+EX_DELETE_FAILED=8
+EX_NONE_HIDDEN=10
+EX_DUPLICATE_BRANCH=11
+
+if [ $# -lt 2 ] || [ $# -gt 2] ; then
+	>&2 echo "usage: git unhide branch-to-unhide"
+	>&2 echo "This command reveals a previously hidden branch, so that it displays with the 'git branch' command"
+	>&2 echo "Try 'git hidden' to see the names of hidden branches."
+	exit(EX_USAGE)
+fi
 
 branch=$1
-gitbasedir=$(git rev-parse --show-toplevel)
-githiddendir=$gitbasedir/.git/refs/hidden
-mkdir -p $githiddendir
+hidden_dir=$(git rev-parse --show-toplevel)/.git/refs/hidden/
+heads_dir=$(git rev-parse --show-toplevel)/.git/refs/heads/
+if [ ! test -e $hidden_dir ] ; then
+	>&2 echo "error: no hidden branches found"
+	exit(EX_NONE_HIDDEN)
+fi
+if [ ! test -e $hidden_dir$branch ] ; then
+	>&2 echo "error: branch \"" $branch "\" not found in hidden folder"
+	exit(EX_MISSING_TARGET)
+fi
+if [ test -e $heads_dir$branch ] ; then
+	>&2 echo "error: there is already an active branch with that name!"
+	exit(EX_DUPLICATE_BRANCH)
+fi
+
 git update-ref refs/heads/$branch refs/hidden/$branch
+if [ $? -ne 0 ] ; then
+	>&2 echo "error on update-ref: aborting unhide command"
+	exit(EX_UPDATE_REF_FAILED_WITH_EC)
+fi
+
+if [ ! test -e $heads_dir$branch ] ; then
+	>&2 echo "error: active branch ref not found after update-ref, aborting unhide command"
+	exit(EX_UPDATE_REF_FAILED_NO_EC)
+fi
+
+rm $hidden_dir$branch
+if [ $? -ne 0 ] ; then
+	>&2 echo "error: failed to delete hidden reference."
+	exit(EX_DELETE_FAILED)
+else
+	# clean up any unused hidden folders
+	folders=hidden/$branch
+	while [ $(dirname $folders) -ne '.' ] ; do
+		folders=$(dirname $folders)
+		rmdir $folders > /dev/null 2> /dev/null
+		if [ $? -ne 0 ] ; then
+			break
+		fi
+	done
+fi
