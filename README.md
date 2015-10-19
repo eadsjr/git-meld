@@ -68,7 +68,8 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
   * git-hidden added
 
 # ERROR CODES:
-`declare -a errorcodes
+```bash
+declare -a errorcodes
 errorcodes["usage_error"]=3
 errorcodes["missing_target"]=4
 errorcodes["duplicate_hidden"]=5
@@ -83,4 +84,5 @@ errorcodes["permission_denied"]=13
 errorcodes["not_on_path"]=14
 errorcodes["preventing_overwrite"]=15
 errorcodes["unknown_arguments"]=16
-errorcodes["copy_failed"]=17`
+errorcodes["copy_failed"]=17
+```
