@@ -1,4 +1,4 @@
-WARNING: This does not have all the safety features implemented just yet. Use with appropriate caution.
+## WARNING: This does not have all the safety features implemented just yet. Use with appropriate caution.
 
 
 
@@ -49,27 +49,26 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
 * add workflow documentation - testing proc / walkthrough
 * add developer documentation - migrate ERROR CODES
 * CONSIDER:
-..* git-push override that makes sure hidden brances sync to remote system
-..* make git-hide and git-unhide error case behavior more symmetric to avoid confusion
+  * git-push override that makes sure hidden brances sync to remote system
+  * make git-hide and git-unhide error case behavior more symmetric to avoid confusion
 
 # CHANGELOG:
 1. Oct 18, 2015 - ? - Added significant safety checks, features and feedback.
-..* lots of error checking and failsafes added to git-*
-..* git-meld now passes most arguments through to merge
-..* git-hide will delete the hidden branch as cleanup if it fails to delete the original
-..* git-hidden now displays the branch names correctly, even with extra folders
-..* install.sh recieved a major upgrade
-..* added CHANGELOG
-..* added error codes
+  * lots of error checking and failsafes added to git-*
+  * git-meld now passes most arguments through to merge
+  * git-hide will delete the hidden branch as cleanup if it fails to delete the original
+  * git-hidden now displays the branch names correctly, even with extra folders
+  * install.sh recieved a major upgrade
+  * added CHANGELOG
+  * added error codes
 2. Sep 3,  2015 - f6f2d8 - Core functionality implemented. Mostly works, no safty checks.
-..* git-meld added
-..* git-hide added
-..* git-unhide added
-..* git-hidden added
+  * git-meld added
+  * git-hide added
+  * git-unhide added
+  * git-hidden added
 
 # ERROR CODES:
-`
-declare -a errorcodes
+`declare -a errorcodes
 errorcodes["usage_error"]=3
 errorcodes["missing_target"]=4
 errorcodes["duplicate_hidden"]=5
@@ -84,5 +83,4 @@ errorcodes["permission_denied"]=13
 errorcodes["not_on_path"]=14
 errorcodes["preventing_overwrite"]=15
 errorcodes["unknown_arguments"]=16
-errorcodes["copy_failed"]=17
-`
+errorcodes["copy_failed"]=17`
