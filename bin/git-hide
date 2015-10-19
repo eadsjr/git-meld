@@ -23,32 +23,33 @@ fi
 branch=$1
 branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/$branch
 if [ ! test -e $branchpath ] ; then
-	>&2 echo "error: branch \"" $branch "\" not found heads"
+	>&2 echo "ERROR: branch \"" $branch "\" not found heads"
 	exit(EX_MISSING_TARGET)
 fi
 
 hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
 if [ test -e $hiddenpath ] ; then
-	>&2 echo "error: there is already a hidden branch with that name!"
+	>&2 echo "ERROR: there is already a hidden branch with the name \"" $branch "\" !"
+	>&2 echo "To resolve manually relocate or delete \"" $hiddenpath "\""
 	exit(EX_DUPLICATE_HIDDEN)
 fi
 
 # copy branch to hidden folder
 git update-ref refs/hidden/$branch $branch
 if [ $? -ne 0 ] ; then
-	>&2 echo "error on update-ref: aborting hide command"
+	>&2 echo "ERROR on update-ref: aborting hide command"
 	exit(EX_UPDATE_REF_FAILED_WITH_EC)
 fi
 
 if [ ! test -e $hiddenpath ] ; then
-	>&2 echo "error: hidden branch ref not found after update-ref, aborting hide command"
+	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \"" $branch "\""
 	exit(EX_UPDATE_REF_FAILED_NO_EC)
 fi
 
 # delete original
 git branch -D $branch > /dev/null
 if [ $? -ne 0 ] ; then
-	>&2 echo "error: failed to delete original reference."
+	>&2 echo "ERROR: failed to delete original reference for \"" $branch "\""
 	>&2 echo "aborting hide command. attempting to clean up..."
 	rm $hiddenpath
 	if [ test -e $hiddenpath ] ; then

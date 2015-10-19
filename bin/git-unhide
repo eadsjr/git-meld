@@ -25,32 +25,32 @@ branch=$1
 hidden_dir=$(git rev-parse --show-toplevel)/.git/refs/hidden/
 heads_dir=$(git rev-parse --show-toplevel)/.git/refs/heads/
 if [ ! test -e $hidden_dir ] ; then
-	>&2 echo "error: no hidden branches found"
+	>&2 echo "ERROR: no hidden branches found"
 	exit(EX_NONE_HIDDEN)
 fi
 if [ ! test -e $hidden_dir$branch ] ; then
-	>&2 echo "error: branch \"" $branch "\" not found in hidden folder"
+	>&2 echo "ERROR: branch \"" $branch "\" not found in hidden folder"
 	exit(EX_MISSING_TARGET)
 fi
 if [ test -e $heads_dir$branch ] ; then
-	>&2 echo "error: there is already an active branch with that name!"
+	>&2 echo "ERROR: there is already an active branch with the name \"" $branch "\" !"
 	exit(EX_DUPLICATE_BRANCH)
 fi
 
 git update-ref refs/heads/$branch refs/hidden/$branch
 if [ $? -ne 0 ] ; then
-	>&2 echo "error on update-ref: aborting unhide command"
+	>&2 echo "ERROR on update-ref: aborting unhide command for \"" $branch "\""
 	exit(EX_UPDATE_REF_FAILED_WITH_EC)
 fi
 
 if [ ! test -e $heads_dir$branch ] ; then
-	>&2 echo "error: active branch ref not found after update-ref, aborting unhide command"
+	>&2 echo "ERROR: active branch ref not found after update-ref, aborting unhide command for \"" $branch "\""
 	exit(EX_UPDATE_REF_FAILED_NO_EC)
 fi
 
 rm $hidden_dir$branch
 if [ $? -ne 0 ] ; then
-	>&2 echo "error: failed to delete hidden reference."
+	>&2 echo "ERROR: failed to delete hidden reference for \"" $branch "\""
 	exit(EX_DELETE_FAILED)
 else
 	# clean up any unused hidden folders
