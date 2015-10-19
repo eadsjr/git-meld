@@ -25,11 +25,11 @@ do
 		--force)
 		force_overwrite=true
 		;;
-		sudo|*install.sh)
+		:|sudo|*install.sh)
 		;;
 		*)
-		echo "ERROR: unknown argument \"" $arg "\"" 
-		exit(EX_UNKNOWN_ARGUMENT)
+		echo "ERROR: unknown argument \"" $arg "\""
+		exit $EX_UNKNOWN_ARGUMENT
 		;;
 	esac
 done
@@ -39,7 +39,7 @@ echo 'asserting that ' INSTALL_TARGET_PATH ' is on the system path'
 path=$(echo $PATH | sed 's/:/\'$'\n/g')
 is_install_target_on_path=false
 for p in $path ; do
-	if [ p -eq $INSTALL_TARGET_PATH ] ; then
+	if [ $p == $INSTALL_TARGET_PATH ] ; then
 		is_install_target_on_path=true
 	fi
 done
@@ -48,16 +48,16 @@ if [ ! is_install_target_on_path ] ; then
 	>&2 echo "ERROR: " $INSTALL_TARGET_PATH " is not on the path."
 	>&2 echo "To resolve, add 'PATH=$PATH:" $INSTALL_TARGET_PATH "' to to your ~/.bashrc or ~/.profile file and rerun"
 	>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit(EX_NOT_ON_PATH)
+	exit EX_NOT_ON_PATH
 fi
 
 echo 'asserting that ' $INSTALL_TARGET_PATH ' is writable'
 
 # Source: chepner, AlexVogel
 # http://stackoverflow.com/questions/14103806/bash-test-if-a-directory-is-writable-by-a-given-uid
-check_write_permissions(path) {
+function check_write_permissions {
 	USER=johndoe
-	DIR=$path
+	DIR=$1
 
 	# Use -L to get information about the target of a symlink,
 	# not the link itself, as pointed out in the comments
@@ -88,12 +88,12 @@ check_write_permissions(path) {
 
 	return $ACCESS
 }
-perm = check_write_permissions($INSTALL_TARGET_PATH)
+perm = check_write_permissions $INSTALL_TARGET_PATH
 if [ ! perm ] ; then
 	>&2 echo "ERROR: permission to write to " $INSTALL_TARGET_PATH " was denied. "
 	>&2 echo "To resolve, rerun with admin priviliges. 'sudo ./install.sh'"
 	>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit(EX_PERMISSION_DENIED)
+	exit EX_PERMISSION_DENIED
 fi
 
 echo 'asserting that git-meld is not already installed at ' $INSTALL_TARGET_PATH
@@ -104,7 +104,7 @@ for path in bin/git-* ; do
 		>&2 echo "ERROR: file " $(basename $path) " already exists at " $INSTALL_TARGET_PATH
 		>&2 echo "To overwrite existing installation, rerun with --force option."
 		>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-		exit(EX_PREVENTING_OVERWRITE)
+		exit EX_PREVENTING_OVERWRITE
 	fi
 done
 
@@ -115,7 +115,7 @@ echo 'installing git-meld to ' $INSTALL_TARGET_PATH ' ...'
 cp bin/git-* $INSTALL_TARGET_PATH
 if [ $? -ne 0 ] ; then
 	>&2 echo 'ERROR: failed to copy files to installation directory.'
-	exit(EX_COPY_FAILED)
+	exit EX_COPY_FAILED
 fi
 
 echo 'installation complete!'
