@@ -1,5 +1,9 @@
 #!/bin/bash
 # This command reveals all hidden branches
 
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
+
 path=$(git rev-parse --show-toplevel)/.git/refs/hidden/
 2>/dev/null find $path -type f -print | sed "s:$path/::" | awk 'length($0) > 0'

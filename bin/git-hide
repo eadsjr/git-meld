@@ -1,6 +1,10 @@
 #!/bin/bash
 # This command hides a branch, so that it does not display with the `git branch` command
 
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
+
 # Exit codes
 EX_USAGE=3
 EX_MISSING_TARGET=4

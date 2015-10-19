@@ -1,4 +1,10 @@
 #!/bin/bash
+# Install script for the git-meld project.
+
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
+
 
 # TODO: Safety checks
 # TODO: check write permission
