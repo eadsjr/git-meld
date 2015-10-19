@@ -1,5 +1,5 @@
 #!/bin/bash
-gitbasedir=$(git rev-parse --show-toplevel)
-githiddendir=$gitbasedir/.git/refs/hidden
-mkdir -p $githiddendir 
-ls $githiddendir
+# This command reveals all hidden branches
+
+path=$(git rev-parse --show-toplevel)/.git/refs/hidden/
+2>/dev/null find $path -type f -print | sed "s:$path/::" | awk 'length($0) > 0'
