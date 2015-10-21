@@ -1,11 +1,81 @@
 #!/bin/bash
+# This command hides a branch, so that it does not display with the `git branch` command
 
-# TODO: check for params (exactly one branch name)
-# TODO: print usage if needed
-# TODO: check validity of input / is it a path
-# TODO: ensure that hiding a branch doesn't overwrite another of the same name
-# TODO: ensure that if hide fails, branch is not deleted
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Error codes thrown on exit
+ec_usage=3
+ec_missing_target=4
+ec_duplicate_hidden=5
+ec_update_ref_failed_with_ec=6
+ec_update_ref_failed_no_ec=7
+ec_delete_failed=8
+ec_delete_and_cleanup_failed=9
+
+if [ $# -ne 1 ] ; then
+	>&2 echo "usage: git hide branch-to-hide"
+	>&2 echo "This command hides a branch, so that it does not display with the 'git branch' command"
+	exit $ec_usage
+fi
 
 branch=$1
+branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/$branch
+if [ ! -e $branchpath ] ; then
+	>&2 echo "ERROR: branch \""$branch"\" not found in branch heads"
+	exit $ec_missing_target
+fi
+
+hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
+if [ -e $hiddenpath ] ; then
+	>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
+	>&2 echo "To resolve manually relocate or delete \""$hiddenpath"\""
+	exit $ec_duplicate_hidden
+fi
+
+# copy branch to hidden folder
 git update-ref refs/hidden/$branch $branch
+if [ $? -ne 0 ] ; then
+	>&2 echo "ERROR on update-ref: aborting hide command"
+	exit $ec_update_ref_failed_with_ec
+fi
+
+if [ ! -e $hiddenpath ] ; then
+	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \""$branch"\""
+	exit $ec_update_ref_failed_no_ec
+fi
+
+# delete original
 git branch -D $branch > /dev/null
+if [ $? -ne 0 ] ; then
+	>&2 echo "ERROR: failed to delete original reference for \""$branch"\""
+	>&2 echo "aborting hide command. attempting to clean up..."
+	rm $hiddenpath
+	if [ -e $hiddenpath ] ; then
+		>&2 echo "cleanup failed..."
+		exit $ec_delete_and_cleanup_failed
+	fi
+	# also delete all parent folders including hidden if empty
+	folders=hidden/$branch
+	echo folders $folders
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
+		echo look
+		rmdir $folders > /dev/null 2> /dev/null
+		if [ $? -ne 0 ] ; then
+			break
+		fi
+	done
+	exit $ec_delete_failed
+else
+	# clean up any unused folders
+	folders=$branch
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
+		rmdir $(git rev-parse --show-toplevel)/.git/refs/heads/$folders > /dev/null 2> /dev/null
+		if [ $? -ne 0 ] ; then
+			break
+		fi
+	done
+fi

@@ -1,12 +1,85 @@
 #!/bin/bash
+# This command melds the branch, like a squahed merge, then hides the associated branches
 
-# TODO: ensure merge succeeds before hiding
-# TODO: make all the flags / params for merge work too!
-# TODO: use the git-hide command to do the hiding!
-# TODO: print good error messages
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-branch=$1
+# Error codes thrown on exit
+ec_missing_target=4
+ec_duplicate_hidden=5
+ec_merge_failed=12
 
-git merge --squash $branch
-git update-ref ref/hidden/$branch $branch
-git branch -D $branch
+branches_index=0
+
+force_meld=false
+meld_quiet=false
+
+while [[ $# -gt 0 ]]
+do
+	key="$1"
+	case $key in
+		# collect options and params
+		-s|-X|-S|-m)
+		args=$args' '$key
+		shift
+		args=$args' '$key
+		;;
+		# ignore leading message
+		HEAD)
+		unset branches
+		branches_index=0
+		;;
+		--meld-force)
+		force_meld=true		
+		;;
+		--meld-quiet)
+		meld_quiet=true
+		;;
+		# collect all normal commands & flags
+		-*)
+		args=$args' '$key
+		;;
+		*)
+		# collect the targets
+		args=$args' '$key
+		branches[$branches_index]=$key
+		>&/dev/null $((++branches_index))
+		;;
+	esac
+	shift
+done
+
+# verify each branch exists and will not overwrite
+for branch in $branches ; do
+	if [ ! -e $(git rev-parse --show-toplevel)/.git/refs/heads/$branch ] ; then
+		if [ force_meld ] ; then
+			if [ ! meld_quiet ] ; then
+				>&2 echo "warning: no branch found for \""$branch"\"."
+			fi
+		else
+			>&2 echo "ERROR: No branch was found for \""$branch"\"."
+			>&2 echo "hint: Use --meld-force to force."
+			exit $ec_missing_target
+		fi
+	fi
+	hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
+	if [ -e $hiddenpath ] ; then
+		>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
+		>&2 echo "hint: To resolve manually relocate or delete \""$hiddenpath"\""
+			exit $ec_duplicate_hidden
+	fi
+done
+
+git merge --squash $args
+if [ $? -ne 0 ] ; then
+	>&2 echo "ERROR: The internal merge failed. To avoid damage, branches will remain visible."
+	>&2 echo "hint: You can hide them manually with 'git hide <branch>'."
+	>&2 echo "hint: You should verify the state of your project before proceeding."
+	exit $ec_merge_failed
+fi
+
+for branch in $branches ; do
+	git hide $branch
+done
+

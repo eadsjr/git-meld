@@ -1,11 +1,65 @@
 #!/bin/bash
+# This command restores a previously hidden branch
 
-# TODO: check for params (exactly one branch name)
-# TODO: defensive logic: see hide
-# TODO: Check that this exists
+# Copyright 2015 by Jason Randolph Eads <jeads442@gmail.com>
+# Licensed under the Apache License, Version 2.0 (the "License");
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Error codes thrown on exit
+ec_usage=3
+ec_missing_target=4
+ec_update_ref_failed_with_ec=6
+ec_update_ref_failed_no_ec=7
+ec_delete_failed=8
+ec_none_hidden=10
+ec_duplicate_branch=11
+
+if [ $# -ne 1 ] ; then
+	>&2 echo "usage: git unhide branch-to-unhide"
+	>&2 echo "This command restores a previously hidden branch"
+	>&2 echo "Try 'git hidden' to see the names of hidden branches."
+	exit $ec_usage
+fi
 
 branch=$1
-gitbasedir=$(git rev-parse --show-toplevel)
-githiddendir=$gitbasedir/.git/refs/hidden
-mkdir -p $githiddendir
+hidden_dir=$(git rev-parse --show-toplevel)/.git/refs/hidden/
+heads_dir=$(git rev-parse --show-toplevel)/.git/refs/heads/
+if [ ! -e $hidden_dir ] ; then
+	>&2 echo "ERROR: no hidden branches found"
+	exit $ec_none_hidden
+fi
+if [ ! -e $hidden_dir$branch ] ; then
+	>&2 echo "ERROR: branch \""$branch"\" not found in hidden folder"
+	exit $ec_missing_target
+fi
+if [ -e $heads_dir$branch ] ; then
+	>&2 echo "ERROR: there is already an active branch with the name \""$branch"\" !"
+	exit $ec_duplicate_branch
+fi
+
 git update-ref refs/heads/$branch refs/hidden/$branch
+if [ $? -ne 0 ] ; then
+	>&2 echo "ERROR on update-ref: aborting unhide command for \""$branch"\""
+	exit $ec_update_ref_failed_with_ec
+fi
+
+if [ ! -e $heads_dir$branch ] ; then
+	>&2 echo "ERROR: active branch ref not found after update-ref, aborting unhide command for \""$branch"\""
+	exit $ec_update_ref_failed_no_ec
+fi
+
+rm $hidden_dir$branch
+if [ $? -ne 0 ] ; then
+	>&2 echo "ERROR: failed to delete hidden reference for \""$branch"\""
+	exit $ec_delete_failed
+else
+	# clean up any unused hidden folders
+	folders=hidden/$branch
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
+		rmdir $(git rev-parse --show-toplevel)/.git/refs/$folders > /dev/null 2> /dev/null
+		if [ $? -ne 0 ] ; then
+			break
+		fi
+	done
+fi
