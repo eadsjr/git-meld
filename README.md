@@ -6,7 +6,7 @@
 # git-meld
 A simple extension to git that enables cleaner branching workflow without losing history.
 
-Version ?
+Version 0.8.0
 
 
 # The 'big idea' of git-meld
@@ -46,6 +46,7 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
 For more neat git extensions, check out [the git-commands collection!](https://github.com/git-commands)
 
 # TODO:
+* Solve: Syncronize with server to preserve history non-locally.
 * More documentation!
 * Test more!
 * Add man pages that install and come up in `git help`
