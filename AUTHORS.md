@@ -14,5 +14,6 @@ Special thanks to the freenode.net Web IRC community:
   * #bash
     * Stummi, twkm - naming conventions, syntax bugs
     * ormaaj - bash versioning issues
+    * izabera - suggestions, syntax bugs and style
 
 Special thanks to Stack Overflow and it's extremely helpful community.

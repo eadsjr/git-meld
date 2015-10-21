@@ -14,7 +14,7 @@ The purpose of git-meld is to allow easy merging of branches, without polluting 
 
 
 # Installing git-meld
-Run `sudo install.sh`
+Run `install.sh`
 
 
 # Using git-meld

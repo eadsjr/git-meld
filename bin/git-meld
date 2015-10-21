@@ -31,10 +31,10 @@ do
 		branches_index=0
 		;;
 		--meld-force)
-		force_meld=true		
+		export force_meld=true
 		;;
 		--meld-quiet)
-		meld_quiet=true
+		export meld_quiet=true
 		;;
 		# collect all normal commands & flags
 		-*)
@@ -44,34 +44,34 @@ do
 		# collect the targets
 		args=$args' '$key
 		branches[$branches_index]=$key
-		>&/dev/null $((++branches_index))
+		(( ++branches_index ))
 		;;
 	esac
 	shift
 done
 
 # verify each branch exists and will not overwrite
-for branch in $branches ; do
-	if [ ! -e $(git rev-parse --show-toplevel)/.git/refs/heads/$branch ] ; then
-		if [ force_meld ] ; then
-			if [ ! meld_quiet ] ; then
-				>&2 echo "warning: no branch found for \""$branch"\"."
+for branch in "${branches[@]}" ; do
+	if [ ! -e "$(git rev-parse --show-toplevel)"/.git/refs/heads/"$branch" ] ; then
+		if [ $force_meld ] ; then
+			if [ ! $meld_quiet ] ; then
+				>&2 echo "warning: no branch found for \"$branch\"."
 			fi
 		else
-			>&2 echo "ERROR: No branch was found for \""$branch"\"."
+			>&2 echo "ERROR: No branch was found for \"$branch\"."
 			>&2 echo "hint: Use --meld-force to force."
 			exit $ec_missing_target
 		fi
 	fi
 	hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
-	if [ -e $hiddenpath ] ; then
-		>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
-		>&2 echo "hint: To resolve manually relocate or delete \""$hiddenpath"\""
+	if [ -e "$hiddenpath" ] ; then
+		>&2 echo "ERROR: there is already a hidden branch with the name \"$branch\" !"
+		>&2 echo "hint: To resolve manually relocate or delete \"$hiddenpath\""
 			exit $ec_duplicate_hidden
 	fi
 done
 
-git merge --squash $args
+git merge --squash "$args"
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR: The internal merge failed. To avoid damage, branches will remain visible."
 	>&2 echo "hint: You can hide them manually with 'git hide <branch>'."
@@ -79,7 +79,7 @@ if [ $? -ne 0 ] ; then
 	exit $ec_merge_failed
 fi
 
-for branch in $branches ; do
-	git hide $branch
+for branch in "${branches[@]}" ; do
+	git hide "$branch"
 done
 

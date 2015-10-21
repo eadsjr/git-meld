@@ -28,13 +28,14 @@ do
 		force_overwrite=true
 		;;
 		-q|--quiet)
-		verbosity=0
+		export verbosity=0
 		;;
 		-v|--verbose)
-		verbosity=2
+		:
+		export verbosity=2
 		;;
 		*)
-		echo "ERROR: unknown argument \""$key"\""
+		echo "ERROR: unknown argument \"$key\""
 		exit $ec_unknown_arguments
 		;;
 	esac
@@ -46,18 +47,18 @@ done
 
 # echo 'asserting that '$install_target_path' is on the system path'
 
-path=$(echo $PATH | sed 's/:/\'$'\n/g')
+path=$(echo "$PATH" | tr ':' '\n')
 is_install_target_on_path=false
 for p in $path ; do
-	if [ $p == $install_target_path ] || [ $p == ${install_target_path%?} ] ; then
+	if [ "$p" == "$install_target_path" ] || [ "$p" == "${install_target_path%?}" ] ; then
 		is_install_target_on_path=true
 		break
 	fi
 done
 
-if ! $is_install_target_on_path ; then
-	>&2 echo "ERROR: "$install_target_path" is not on the path."
-	>&2 echo "hint: To resolve, add 'PATH=$PATH:"$install_target_path"' to to your ~/.bashrc or ~/.profile file and rerun"
+if ! "$is_install_target_on_path" ; then
+	>&2 echo "ERROR: $install_target_path is not on the path."
+	>&2 echo "hint: To resolve, add 'PATH=$PATH:$install_target_path' to to your ~/.bashrc or ~/.profile file and rerun"
 	>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
 	exit $ec_not_on_path
 fi
@@ -80,12 +81,12 @@ for path in bin/git-* ; do
 		>&2 echo 'ERROR: unable to find binaries. Are you in the base project directory?'
 		exit $ec_binaries_missing
 	fi
-	if [ -e $install_target_path$(basename $path) ] ; then
+	if [ -e "$install_target_path$""(basename $path)" ] ; then
 		if $force_overwrite ; then
 			:
 			# >&2 echo "WARNING: overwriting file $(basename $path) at "$install_target_path
 		else
-			>&2 echo "ERROR: file $(basename $path) already exists at "$install_target_path
+			>&2 echo "ERROR: file ""$(basename ""$path"")"" already exists at $install_target_path"
 			>&2 echo "hint: To overwrite existing installation, rerun with --force or -f option."
 			>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
 			exit $ec_preventing_overwrite
