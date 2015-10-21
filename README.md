@@ -40,21 +40,17 @@ If you like git-meld, or use it regularly, or have other constructive feedback p
 Don't forget to star it if it helps you! This helps others find useful tools like this one.
 
 # TODO:
-* implement the new error code style
-* finish debugging and updating the scripts
-* Add pictures to README to make it more sensible
 * More documentation!
-* Make installer more robust
 * Test for bugs!
-* more feedback on errors / usage from git commands
+* Add pictures to README to make it more sensible
 * add workflow documentation - testing proc / walkthrough
 * add developer documentation - migrate ERROR CODES
 * CONSIDER:
   * git-push override that makes sure hidden brances sync to remote system
-  * make git-hide and git-unhide error case behavior more symmetric to avoid confusion
+  * add a flag to prevent empty ref folder cleanup
 
 # CHANGELOG:
-1. Oct 18, 2015 - ? - Added significant safety checks, features and feedback.
+1. Oct 20, 2015 - ? - Added significant safety checks, features and feedback.
   * lots of error checking and failsafes added to git-*
   * git-meld now passes most arguments through to merge
   * git-hide will delete the hidden branch as cleanup if it fails to delete the original

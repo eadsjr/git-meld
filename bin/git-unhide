@@ -5,59 +5,59 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-# Exit codes
-EX_USAGE=3
-EX_MISSING_TARGET=4
-EX_UPDATE_REF_FAILED_WITH_EC=6
-EX_UPDATE_REF_FAILED_NO_EC=7
-EX_DELETE_FAILED=8
-EX_NONE_HIDDEN=10
-EX_DUPLICATE_BRANCH=11
+declare -a errorcodes
+errorcodes["usage_error"]=3
+errorcodes["missing_target"]=4
+errorcodes["update_ref_failed_EC"]=6
+errorcodes["update_ref_failed_no_EC"]=7
+errorcodes["delete_failed"]=8
+errorcodes["none_hidden"]=10
+errorcodes["duplicate_branch"]=11
 
-if [ $# -lt 2 ] || [ $# -gt 2] ; then
+if [ $# -ne 1 ] ; then
 	>&2 echo "usage: git unhide branch-to-unhide"
 	>&2 echo "This command restores a previously hidden branch"
 	>&2 echo "Try 'git hidden' to see the names of hidden branches."
-	exit(EX_USAGE)
+	exit ${errorcodes["usage_error"]}
 fi
 
 branch=$1
 hidden_dir=$(git rev-parse --show-toplevel)/.git/refs/hidden/
 heads_dir=$(git rev-parse --show-toplevel)/.git/refs/heads/
-if [ ! test -e $hidden_dir ] ; then
+if [ ! -e $hidden_dir ] ; then
 	>&2 echo "ERROR: no hidden branches found"
-	exit(EX_NONE_HIDDEN)
+	exit ${errorcodes["none_hidden"]}
 fi
-if [ ! test -e $hidden_dir$branch ] ; then
-	>&2 echo "ERROR: branch \"" $branch "\" not found in hidden folder"
-	exit(EX_MISSING_TARGET)
+if [ ! -e $hidden_dir$branch ] ; then
+	>&2 echo "ERROR: branch \""$branch"\" not found in hidden folder"
+	exit ${errorcodes["missing_target"]}
 fi
-if [ test -e $heads_dir$branch ] ; then
-	>&2 echo "ERROR: there is already an active branch with the name \"" $branch "\" !"
-	exit(EX_DUPLICATE_BRANCH)
+if [ -e $heads_dir$branch ] ; then
+	>&2 echo "ERROR: there is already an active branch with the name \""$branch"\" !"
+	exit ${errorcodes["duplicate_branch"]}
 fi
 
 git update-ref refs/heads/$branch refs/hidden/$branch
 if [ $? -ne 0 ] ; then
-	>&2 echo "ERROR on update-ref: aborting unhide command for \"" $branch "\""
-	exit(EX_UPDATE_REF_FAILED_WITH_EC)
+	>&2 echo "ERROR on update-ref: aborting unhide command for \""$branch"\""
+	exit ${errorcodes["update_ref_failed_EC"]}
 fi
 
-if [ ! test -e $heads_dir$branch ] ; then
-	>&2 echo "ERROR: active branch ref not found after update-ref, aborting unhide command for \"" $branch "\""
-	exit(EX_UPDATE_REF_FAILED_NO_EC)
+if [ ! -e $heads_dir$branch ] ; then
+	>&2 echo "ERROR: active branch ref not found after update-ref, aborting unhide command for \""$branch"\""
+	exit ${errorcodes["update_ref_failed_no_EC"]}
 fi
 
 rm $hidden_dir$branch
 if [ $? -ne 0 ] ; then
-	>&2 echo "ERROR: failed to delete hidden reference for \"" $branch "\""
-	exit(EX_DELETE_FAILED)
+	>&2 echo "ERROR: failed to delete hidden reference for \""$branch"\""
+	exit ${errorcodes["delete_failed"]}
 else
 	# clean up any unused hidden folders
 	folders=hidden/$branch
-	while [ $(dirname $folders) -ne '.' ] ; do
+	while [ $(dirname $folders) != '.' ] ; do
 		folders=$(dirname $folders)
-		rmdir $folders > /dev/null 2> /dev/null
+		rmdir $(git rev-parse --show-toplevel)/.git/refs/$folders > /dev/null 2> /dev/null
 		if [ $? -ne 0 ] ; then
 			break
 		fi

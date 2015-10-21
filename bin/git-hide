@@ -5,65 +5,77 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-# Exit codes
-EX_USAGE=3
-EX_MISSING_TARGET=4
-EX_DUPLICATE_HIDDEN=5
-EX_UPDATE_REF_FAILED_WITH_EC=6
-EX_UPDATE_REF_FAILED_NO_EC=7
-EX_DELETE_FAILED=8
-EX_DELETE_AND_CLEANUP_FAILED=9
+declare -a errorcodes
+errorcodes["usage_error"]=3
+errorcodes["missing_target"]=4
+errorcodes["duplicate_hidden"]=5
+errorcodes["update_ref_failed_EC"]=6
+errorcodes["update_ref_failed_no_EC"]=7
+errorcodes["delete_failed"]=8
+errorcodes["delete_and_cleanup_failed"]=9
 
-if [ $# -lt 2 ] || [ $# -gt 2] ; then
+if [ $# -ne 1 ] ; then
 	>&2 echo "usage: git hide branch-to-hide"
 	>&2 echo "This command hides a branch, so that it does not display with the 'git branch' command"
-	exit(EX_USAGE)
+	exit ${errorcodes["usage_error"]}
 fi
 
 branch=$1
 branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/$branch
-if [ ! test -e $branchpath ] ; then
-	>&2 echo "ERROR: branch \"" $branch "\" not found heads"
-	exit(EX_MISSING_TARGET)
+if [ ! -e $branchpath ] ; then
+	>&2 echo "ERROR: branch \""$branch"\" not found in branch heads"
+	exit ${errorcodes["missing_target"]}
 fi
 
 hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
-if [ test -e $hiddenpath ] ; then
-	>&2 echo "ERROR: there is already a hidden branch with the name \"" $branch "\" !"
-	>&2 echo "To resolve manually relocate or delete \"" $hiddenpath "\""
-	exit(EX_DUPLICATE_HIDDEN)
+if [ -e $hiddenpath ] ; then
+	>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
+	>&2 echo "To resolve manually relocate or delete \""$hiddenpath"\""
+	exit ${errorcodes["duplicate_hidden"]}
 fi
 
 # copy branch to hidden folder
 git update-ref refs/hidden/$branch $branch
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR on update-ref: aborting hide command"
-	exit(EX_UPDATE_REF_FAILED_WITH_EC)
+	exit ${errorcodes["update_ref_failed_EC"]}
 fi
 
-if [ ! test -e $hiddenpath ] ; then
-	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \"" $branch "\""
-	exit(EX_UPDATE_REF_FAILED_NO_EC)
+if [ ! -e $hiddenpath ] ; then
+	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \""$branch"\""
+	exit ${errorcodes["update_ref_failed_no_EC"]}
 fi
 
 # delete original
 git branch -D $branch > /dev/null
 if [ $? -ne 0 ] ; then
-	>&2 echo "ERROR: failed to delete original reference for \"" $branch "\""
+	>&2 echo "ERROR: failed to delete original reference for \""$branch"\""
 	>&2 echo "aborting hide command. attempting to clean up..."
 	rm $hiddenpath
-	if [ test -e $hiddenpath ] ; then
+	if [ -e $hiddenpath ] ; then
 		>&2 echo "cleanup failed..."
-		exit(EX_DELETE_AND_CLEANUP_FAILED)
+		exit ${errorcodes["delete_and_cleanup_failed"]}
 	fi
 	# also delete all parent folders including hidden if empty
 	folders=hidden/$branch
-	while [ $(dirname $folders) -ne '.' ] ; do
+	echo folders $folders
+	while [ $(dirname $folders) != '.' ] ; do
 		folders=$(dirname $folders)
+		echo look
 		rmdir $folders > /dev/null 2> /dev/null
 		if [ $? -ne 0 ] ; then
 			break
 		fi
 	done
-	exit(EX_DELETE_FAILED)
+	exit ${errorcodes["delete_failed"]}
+else
+	# clean up any unused folders
+	folders=$branch
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
+		rmdir $(git rev-parse --show-toplevel)/.git/refs/heads/$folders > /dev/null 2> /dev/null
+		if [ $? -ne 0 ] ; then
+			break
+		fi
+	done
 fi
