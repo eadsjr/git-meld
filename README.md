@@ -58,7 +58,7 @@ For more neat git extensions, check out [the git-commands collection!](https://g
   * add a flag to prevent empty ref folder cleanup
 
 # CHANGELOG:
-1. Oct 21, 2015 - ? - Added significant safety checks, features and feedback.
+1. Oct 21, 2015 - 930760 - Added significant safety checks, features and feedback.
   * fully working basic case for each command
   * lots of error checking and failsafes added to git-*
   * git-meld now passes most arguments through to merge, and uses git-hide
