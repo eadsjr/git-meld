@@ -6,117 +6,103 @@
 #     http://www.apache.org/licenses/LICENSE-2.0
 
 # Exit codes
-EX_PERMISSION_DENIED=13
-EX_NOT_ON_PATH=14
-EX_PREVENTING_OVERWRITE=15
-EX_UNKNOWN_ARGUMENT=16
-EX_COPY_FAILED=17
+declare -a errorcodes
+errorcodes["permission_denied"]=13
+errorcodes["not_on_path"]=14
+errorcodes["preventing_overwrite"]=15
+errorcodes["unknown_arguments"]=16
+errorcodes["copy_failed"]=17
+errorcodes["binaries_missing"]=18
 
-INSTALL_TARGET_PATH='/usr/local/bin/'
+
+install_target_path='/usr/local/bin/' # must end with '/'
 
 force_overwrite=false
+verbosity=1
 
-echo 'preparing to install git-meld scripts to ' $INSTALL_TARGET_PATH
-
-for arg in $@:
+while [[ $# -gt 0 ]]
 do
-	case $arg in
+	key="$1"
+	case $key in
 		# prepare to consume flag argument in next iteration
-		--force)
+		-f|--force)
 		force_overwrite=true
 		;;
-		:|sudo|*install.sh)
+		-q|--quiet)
+		verbosity=0
+		;;
+		-v|--verbose)
+		verbosity=2
 		;;
 		*)
-		echo "ERROR: unknown argument \"" $arg "\""
-		exit $EX_UNKNOWN_ARGUMENT
+		echo "ERROR: unknown argument \""$key"\""
+		exit ${errorcodes["unknown_arguments"]}
 		;;
 	esac
+	shift
 done
 
-echo 'asserting that ' INSTALL_TARGET_PATH ' is on the system path'
+
+# echo 'preparing to install git-meld scripts to '$install_target_path
+
+# echo 'asserting that '$install_target_path' is on the system path'
 
 path=$(echo $PATH | sed 's/:/\'$'\n/g')
 is_install_target_on_path=false
 for p in $path ; do
-	if [ $p == $INSTALL_TARGET_PATH ] ; then
+	if [ $p == $install_target_path ] || [ $p == ${install_target_path%?} ] ; then
 		is_install_target_on_path=true
+		break
 	fi
 done
 
-if [ ! is_install_target_on_path ] ; then
-	>&2 echo "ERROR: " $INSTALL_TARGET_PATH " is not on the path."
-	>&2 echo "To resolve, add 'PATH=$PATH:" $INSTALL_TARGET_PATH "' to to your ~/.bashrc or ~/.profile file and rerun"
-	>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit EX_NOT_ON_PATH
+if ! $is_install_target_on_path ; then
+	>&2 echo "ERROR: "$install_target_path" is not on the path."
+	>&2 echo "hint: To resolve, add 'PATH=$PATH:"$install_target_path"' to to your ~/.bashrc or ~/.profile file and rerun"
+	>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
+	exit ${errorcodes["not_on_path"]}
 fi
 
-echo 'asserting that ' $INSTALL_TARGET_PATH ' is writable'
+# echo 'asserting that '$install_target_path' is writable'
 
-# Source: chepner, AlexVogel
-# http://stackoverflow.com/questions/14103806/bash-test-if-a-directory-is-writable-by-a-given-uid
-function check_write_permissions {
-	USER=johndoe
-	DIR=$1
-
-	# Use -L to get information about the target of a symlink,
-	# not the link itself, as pointed out in the comments
-	INFO=( $(stat -cL "%a %G %U" $DIR) )
-	PERM=${INFO[0]}
-	GROUP=${INFO[1]}
-	OWNER=${INFO[2]}
-
-	ACCESS=no
-	if [[ $PERM & 0002 != 0 ]]; then
-	    # Everyone has write access
-	    ACCESS=yes
-	elif [[ $PERM & 0020 != 0 ]]; then
-	    # Some group has write access.
-	    # Is user in that group?
-	    gs=( $(groups $USER) )
-	    for g in "${gs[@]}"; do
-	        if [[ $GROUP == $g ]]; then
-	            ACCESS=yes
-	            break
-	        fi
-	    done
-	elif [[ $PERM & 0200 != 0 ]]; then 
-	    # The owner has write access.
-	    # Does the user own the file?
-	    [[ $USER == $OWNER ]] && ACCESS=yes
-	fi
-
-	return $ACCESS
-}
-perm = check_write_permissions $INSTALL_TARGET_PATH
-if [ ! perm ] ; then
-	>&2 echo "ERROR: permission to write to " $INSTALL_TARGET_PATH " was denied. "
-	>&2 echo "To resolve, rerun with admin priviliges. 'sudo ./install.sh'"
-	>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit EX_PERMISSION_DENIED
+if [ ! -w $install_target_path ] ; then
+	>&2 echo "ERROR: permission to write to " $install_target_path " was denied. "
+	>&2 echo "hint: To resolve, rerun with admin priviliges. 'sudo ./install.sh'"
+	>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
+	exit ${errorcodes["permission_denied"]}
 fi
 
-echo 'asserting that git-meld is not already installed at ' $INSTALL_TARGET_PATH
+if ! $force_overwrite ; then
+	echo 'asserting that git-meld is not already installed at ' $install_target_path
+fi
 
 for path in bin/git-* ; do
-	if [ test -e $INSTALL_TARGET_PATH$(basename $path) ] ; then
-		if 
-		>&2 echo "ERROR: file " $(basename $path) " already exists at " $INSTALL_TARGET_PATH
-		>&2 echo "To overwrite existing installation, rerun with --force option."
-		>&2 echo "To install manually, copy the contents of the bin directory to somewhere on the PATH"
-		exit EX_PREVENTING_OVERWRITE
+	if [ $? -ne 0 ] ; then
+		>&2 echo 'ERROR: unable to find binaries. Are you in the base project directory?'
+		exit ${errorcodes["binaries_missing"]}
+	fi
+	if [ -e $install_target_path$(basename $path) ] ; then
+		if $force_overwrite ; then
+			:
+			# >&2 echo "WARNING: overwriting file $(basename $path) at "$install_target_path
+		else
+			>&2 echo "ERROR: file $(basename $path) already exists at "$install_target_path
+			>&2 echo "hint: To overwrite existing installation, rerun with --force or -f option."
+			>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
+			exit ${errorcodes["preventing_overwrite"]}
+		fi
 	fi
 done
 
-echo 'checks complete.'
-echo 'installing git-meld to ' $INSTALL_TARGET_PATH ' ...'
+# echo 'checks complete.'
+# echo 'installing git-meld to '$install_target_path' ...'
 
 # Install the scripts
-cp bin/git-* $INSTALL_TARGET_PATH
+cp bin/git-* $install_target_path
 if [ $? -ne 0 ] ; then
 	>&2 echo 'ERROR: failed to copy files to installation directory.'
-	exit EX_COPY_FAILED
+	exit ${errorcodes["copy_failed"]}
 fi
 
-echo 'installation complete!'
-echo
+# echo 'installation complete!'
+# echo

@@ -10,8 +10,6 @@ The [SO answer](http://stackoverflow.com/questions/12293944/how-to-find-the-path
 
 The [SO answer](http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash) by [Bruno](http://stackoverflow.com/users/117471/bruno-bronosky) provided guidance for parsing inputs as seen in install.sh and git-meld
 
-The [SO answer](http://stackoverflow.com/questions/14103806/bash-test-if-a-directory-is-writable-by-a-given-uid) by [chepner](http://stackoverflow.com/users/1126841/chepner) provided a cross-platform test for file permissions ustilized in the install.sh script.
-
 Special thanks to the freenode.net Web IRC community, and members:
 	Stummi, twkm - alternative error code scheme, naming conventions, syntax bugs
 

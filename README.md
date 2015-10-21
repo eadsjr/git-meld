@@ -40,7 +40,8 @@ If you like git-meld, or use it regularly, or have other constructive feedback p
 Don't forget to star it if it helps you! This helps others find useful tools like this one.
 
 # TODO:
-* declare -a errorcodes; errorcodes[some_code]=4
+* implement the new error code style
+* finish debugging and updating the scripts
 * Add pictures to README to make it more sensible
 * More documentation!
 * Make installer more robust
@@ -61,7 +62,7 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
   * install.sh recieved a major upgrade
   * added CHANGELOG
   * added error codes
-2. Sep 3,  2015 - f6f2d8 - Core functionality implemented. Mostly works, no safty checks.
+2. Sep 3,  2015 - f6f2d8 - Core functionality implemented. Mostly works, no safety checks.
   * git-meld added
   * git-hide added
   * git-unhide added
@@ -85,4 +86,5 @@ errorcodes["not_on_path"]=14
 errorcodes["preventing_overwrite"]=15
 errorcodes["unknown_arguments"]=16
 errorcodes["copy_failed"]=17
+errorcodes["binaries_missing"]=18
 ```
