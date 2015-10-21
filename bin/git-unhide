@@ -5,20 +5,20 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-declare -a errorcodes
-errorcodes["usage_error"]=3
-errorcodes["missing_target"]=4
-errorcodes["update_ref_failed_EC"]=6
-errorcodes["update_ref_failed_no_EC"]=7
-errorcodes["delete_failed"]=8
-errorcodes["none_hidden"]=10
-errorcodes["duplicate_branch"]=11
+# Error codes thrown on exit
+ec_usage=3
+ec_missing_target=4
+ec_update_ref_failed_with_ec=6
+ec_update_ref_failed_no_ec=7
+ec_delete_failed=8
+ec_none_hidden=10
+ec_duplicate_branch=11
 
 if [ $# -ne 1 ] ; then
 	>&2 echo "usage: git unhide branch-to-unhide"
 	>&2 echo "This command restores a previously hidden branch"
 	>&2 echo "Try 'git hidden' to see the names of hidden branches."
-	exit ${errorcodes["usage_error"]}
+	exit $ec_usage
 fi
 
 branch=$1
@@ -26,32 +26,32 @@ hidden_dir=$(git rev-parse --show-toplevel)/.git/refs/hidden/
 heads_dir=$(git rev-parse --show-toplevel)/.git/refs/heads/
 if [ ! -e $hidden_dir ] ; then
 	>&2 echo "ERROR: no hidden branches found"
-	exit ${errorcodes["none_hidden"]}
+	exit $ec_none_hidden
 fi
 if [ ! -e $hidden_dir$branch ] ; then
 	>&2 echo "ERROR: branch \""$branch"\" not found in hidden folder"
-	exit ${errorcodes["missing_target"]}
+	exit $ec_missing_target
 fi
 if [ -e $heads_dir$branch ] ; then
 	>&2 echo "ERROR: there is already an active branch with the name \""$branch"\" !"
-	exit ${errorcodes["duplicate_branch"]}
+	exit $ec_duplicate_branch
 fi
 
 git update-ref refs/heads/$branch refs/hidden/$branch
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR on update-ref: aborting unhide command for \""$branch"\""
-	exit ${errorcodes["update_ref_failed_EC"]}
+	exit $ec_update_ref_failed_with_ec
 fi
 
 if [ ! -e $heads_dir$branch ] ; then
 	>&2 echo "ERROR: active branch ref not found after update-ref, aborting unhide command for \""$branch"\""
-	exit ${errorcodes["update_ref_failed_no_EC"]}
+	exit $ec_update_ref_failed_no_ec
 fi
 
 rm $hidden_dir$branch
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR: failed to delete hidden reference for \""$branch"\""
-	exit ${errorcodes["delete_failed"]}
+	exit $ec_delete_failed
 else
 	# clean up any unused hidden folders
 	folders=hidden/$branch

@@ -5,45 +5,45 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-declare -a errorcodes
-errorcodes["usage_error"]=3
-errorcodes["missing_target"]=4
-errorcodes["duplicate_hidden"]=5
-errorcodes["update_ref_failed_EC"]=6
-errorcodes["update_ref_failed_no_EC"]=7
-errorcodes["delete_failed"]=8
-errorcodes["delete_and_cleanup_failed"]=9
+# Error codes thrown on exit
+ec_usage=3
+ec_missing_target=4
+ec_duplicate_hidden=5
+ec_update_ref_failed_with_ec=6
+ec_update_ref_failed_no_ec=7
+ec_delete_failed=8
+ec_delete_and_cleanup_failed=9
 
 if [ $# -ne 1 ] ; then
 	>&2 echo "usage: git hide branch-to-hide"
 	>&2 echo "This command hides a branch, so that it does not display with the 'git branch' command"
-	exit ${errorcodes["usage_error"]}
+	exit $ec_usage
 fi
 
 branch=$1
 branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/$branch
 if [ ! -e $branchpath ] ; then
 	>&2 echo "ERROR: branch \""$branch"\" not found in branch heads"
-	exit ${errorcodes["missing_target"]}
+	exit $ec_missing_target
 fi
 
 hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
 if [ -e $hiddenpath ] ; then
 	>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
 	>&2 echo "To resolve manually relocate or delete \""$hiddenpath"\""
-	exit ${errorcodes["duplicate_hidden"]}
+	exit $ec_duplicate_hidden
 fi
 
 # copy branch to hidden folder
 git update-ref refs/hidden/$branch $branch
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR on update-ref: aborting hide command"
-	exit ${errorcodes["update_ref_failed_EC"]}
+	exit $ec_update_ref_failed_with_ec
 fi
 
 if [ ! -e $hiddenpath ] ; then
 	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \""$branch"\""
-	exit ${errorcodes["update_ref_failed_no_EC"]}
+	exit $ec_update_ref_failed_no_ec
 fi
 
 # delete original
@@ -54,7 +54,7 @@ if [ $? -ne 0 ] ; then
 	rm $hiddenpath
 	if [ -e $hiddenpath ] ; then
 		>&2 echo "cleanup failed..."
-		exit ${errorcodes["delete_and_cleanup_failed"]}
+		exit $ec_delete_and_cleanup_failed
 	fi
 	# also delete all parent folders including hidden if empty
 	folders=hidden/$branch
@@ -67,7 +67,7 @@ if [ $? -ne 0 ] ; then
 			break
 		fi
 	done
-	exit ${errorcodes["delete_failed"]}
+	exit $ec_delete_failed
 else
 	# clean up any unused folders
 	folders=$branch

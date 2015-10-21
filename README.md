@@ -1,10 +1,12 @@
-## WARNING: This does not have all the safety features implemented just yet. Use with appropriate caution.
+## WARNING: This project hasn't been tested extensively yet.
 
 
 
 
 # git-meld
 A simple extension to git that enables cleaner branching workflow without losing history.
+
+Version ?
 
 
 # The 'big idea' of git-meld
@@ -35,13 +37,18 @@ To see all of the branches that have been hidden, use this command.
 
 If you find a bug please report it in [the 'Issues' page on github](https://github.com/eadsjr/git-meld)
 
+If you write a fix for a bug, please submit it as a pull request, comment on an issue or by email.
+
 If you like git-meld, or use it regularly, or have other constructive feedback please contact me at [jeads442@gmail.com](mailto:jeads442@gmail.com)
 
 Don't forget to star it if it helps you! This helps others find useful tools like this one.
 
+For more neat git extensions, check out [the git-commands collection!](https://github.com/git-commands)
+
 # TODO:
 * More documentation!
-* Test for bugs!
+* Test more!
+* Add man pages that install and come up in `git help`
 * Add pictures to README to make it more sensible
 * add workflow documentation - testing proc / walkthrough
 * add developer documentation - migrate ERROR CODES
@@ -50,9 +57,9 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
   * add a flag to prevent empty ref folder cleanup
 
 # CHANGELOG:
-1. Oct 20, 2015 - ? - Added significant safety checks, features and feedback.
+1. Oct 21, 2015 - ? - Added significant safety checks, features and feedback.
   * lots of error checking and failsafes added to git-*
-  * git-meld now passes most arguments through to merge
+  * git-meld now passes most arguments through to merge, and uses git-hide
   * git-hide will delete the hidden branch as cleanup if it fails to delete the original
   * git-hidden now displays the branch names correctly, even with extra folders
   * install.sh recieved a major upgrade
@@ -63,24 +70,25 @@ Don't forget to star it if it helps you! This helps others find useful tools lik
   * git-hide added
   * git-unhide added
   * git-hidden added
+  * install.sh added
 
 # ERROR CODES:
 ```bash
-declare -a errorcodes
-errorcodes["usage_error"]=3
-errorcodes["missing_target"]=4
-errorcodes["duplicate_hidden"]=5
-errorcodes["update_ref_failed_EC"]=6
-errorcodes["update_ref_failed_no_EC"]=7
-errorcodes["delete_failed"]=8
-errorcodes["delete_and_cleanup_failed"]=9
-errorcodes["none_hidden"]=10
-errorcodes["duplicate_branch"]=11
-errorcodes["merge_failed"]=12
-errorcodes["permission_denied"]=13
-errorcodes["not_on_path"]=14
-errorcodes["preventing_overwrite"]=15
-errorcodes["unknown_arguments"]=16
-errorcodes["copy_failed"]=17
-errorcodes["binaries_missing"]=18
+# Error codes thrown on exit
+ec_usage=3
+ec_missing_target=4
+ec_duplicate_hidden=5
+ec_update_ref_failed_with_ec=6
+ec_update_ref_failed_no_ec=7
+ec_delete_failed=8
+ec_delete_and_cleanup_failed=9
+ec_none_hidden=10
+ec_duplicate_branch=11
+ec_merge_failed=12
+ec_permission_denied=13
+ec_not_on_path=14
+ec_preventing_overwrite=15
+ec_unknown_arguments=16
+ec_copy_failed=17
+ec_binaries_missing=18
 ```

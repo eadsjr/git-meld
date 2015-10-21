@@ -5,14 +5,13 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-# Exit codes
-declare -a errorcodes
-errorcodes["permission_denied"]=13
-errorcodes["not_on_path"]=14
-errorcodes["preventing_overwrite"]=15
-errorcodes["unknown_arguments"]=16
-errorcodes["copy_failed"]=17
-errorcodes["binaries_missing"]=18
+# Error codes thrown on exit
+ec_permission_denied=13
+ec_not_on_path=14
+ec_preventing_overwrite=15
+ec_unknown_arguments=16
+ec_copy_failed=17
+ec_binaries_missing=18
 
 
 install_target_path='/usr/local/bin/' # must end with '/'
@@ -36,7 +35,7 @@ do
 		;;
 		*)
 		echo "ERROR: unknown argument \""$key"\""
-		exit ${errorcodes["unknown_arguments"]}
+		exit $ec_unknown_arguments
 		;;
 	esac
 	shift
@@ -60,7 +59,7 @@ if ! $is_install_target_on_path ; then
 	>&2 echo "ERROR: "$install_target_path" is not on the path."
 	>&2 echo "hint: To resolve, add 'PATH=$PATH:"$install_target_path"' to to your ~/.bashrc or ~/.profile file and rerun"
 	>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit ${errorcodes["not_on_path"]}
+	exit $ec_not_on_path
 fi
 
 # echo 'asserting that '$install_target_path' is writable'
@@ -69,7 +68,7 @@ if [ ! -w $install_target_path ] ; then
 	>&2 echo "ERROR: permission to write to " $install_target_path " was denied. "
 	>&2 echo "hint: To resolve, rerun with admin priviliges. 'sudo ./install.sh'"
 	>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
-	exit ${errorcodes["permission_denied"]}
+	exit $ec_permission_denied
 fi
 
 if ! $force_overwrite ; then
@@ -79,7 +78,7 @@ fi
 for path in bin/git-* ; do
 	if [ $? -ne 0 ] ; then
 		>&2 echo 'ERROR: unable to find binaries. Are you in the base project directory?'
-		exit ${errorcodes["binaries_missing"]}
+		exit $ec_binaries_missing
 	fi
 	if [ -e $install_target_path$(basename $path) ] ; then
 		if $force_overwrite ; then
@@ -89,7 +88,7 @@ for path in bin/git-* ; do
 			>&2 echo "ERROR: file $(basename $path) already exists at "$install_target_path
 			>&2 echo "hint: To overwrite existing installation, rerun with --force or -f option."
 			>&2 echo "hint: To install manually, copy the contents of the bin directory to somewhere on the PATH"
-			exit ${errorcodes["preventing_overwrite"]}
+			exit $ec_preventing_overwrite
 		fi
 	fi
 done
@@ -101,7 +100,7 @@ done
 cp bin/git-* $install_target_path
 if [ $? -ne 0 ] ; then
 	>&2 echo 'ERROR: failed to copy files to installation directory.'
-	exit ${errorcodes["copy_failed"]}
+	exit $ec_copy_failed
 fi
 
 # echo 'installation complete!'
