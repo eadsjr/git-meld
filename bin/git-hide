@@ -21,48 +21,48 @@ if [ $# -ne 1 ] ; then
 fi
 
 branch=$1
-branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/"$branch"
-if [ ! -e "$branchpath" ] ; then
-	>&2 echo "ERROR: branch \"$branch\" not found in branch heads"
+branchpath=$(git rev-parse --show-toplevel)/.git/refs/heads/$branch
+if [ ! -e $branchpath ] ; then
+	>&2 echo "ERROR: branch \""$branch"\" not found in branch heads"
 	exit $ec_missing_target
 fi
 
-hiddenpath="$(git rev-parse --show-toplevel)"/.git/refs/hidden/"$branch"
-if [ -e "$hiddenpath" ] ; then
-	>&2 echo "ERROR: there is already a hidden branch with the name \"$branch\" !"
-	>&2 echo "To resolve manually relocate or delete \"$hiddenpath\""
+hiddenpath=$(git rev-parse --show-toplevel)/.git/refs/hidden/$branch
+if [ -e $hiddenpath ] ; then
+	>&2 echo "ERROR: there is already a hidden branch with the name \""$branch"\" !"
+	>&2 echo "To resolve manually relocate or delete \""$hiddenpath"\""
 	exit $ec_duplicate_hidden
 fi
 
 # copy branch to hidden folder
-git update-ref "refs/hidden/$branch" "$branch"
+git update-ref refs/hidden/$branch $branch
 if [ $? -ne 0 ] ; then
 	>&2 echo "ERROR on update-ref: aborting hide command"
 	exit $ec_update_ref_failed_with_ec
 fi
 
-if [ ! -e "$hiddenpath" ] ; then
-	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \"$branch\""
+if [ ! -e $hiddenpath ] ; then
+	>&2 echo "ERROR: hidden branch ref not found after update-ref, aborting hide command for \""$branch"\""
 	exit $ec_update_ref_failed_no_ec
 fi
 
 # delete original
-git branch -D "$branch" > /dev/null
+git branch -D $branch > /dev/null
 if [ $? -ne 0 ] ; then
-	>&2 echo "ERROR: failed to delete original reference for \"$branch\""
+	>&2 echo "ERROR: failed to delete original reference for \""$branch"\""
 	>&2 echo "aborting hide command. attempting to clean up..."
-	rm "$hiddenpath"
-	if [ -e "$hiddenpath" ] ; then
+	rm $hiddenpath
+	if [ -e $hiddenpath ] ; then
 		>&2 echo "cleanup failed..."
 		exit $ec_delete_and_cleanup_failed
 	fi
 	# also delete all parent folders including hidden if empty
-	folders=hidden/"$branch"
-	echo folders "$folders"
-	while [ "$(dirname \"$folders\")" != '.' ] ; do
-		folders="$(dirname \"$folders\")"
+	folders=hidden/$branch
+	echo folders $folders
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
 		echo look
-		rmdir "$folders" > /dev/null 2> /dev/null
+		rmdir $folders > /dev/null 2> /dev/null
 		if [ $? -ne 0 ] ; then
 			break
 		fi
@@ -71,9 +71,9 @@ if [ $? -ne 0 ] ; then
 else
 	# clean up any unused folders
 	folders=$branch
-	while [ "$(dirname \"$folders\")" != '.' ] ; do
-		folders="$(dirname \"$folders\")"
-		rmdir "$(git rev-parse --show-toplevel)"/.git/refs/heads/"$folders" > /dev/null 2> /dev/null
+	while [ $(dirname $folders) != '.' ] ; do
+		folders=$(dirname $folders)
+		rmdir $(git rev-parse --show-toplevel)/.git/refs/heads/$folders > /dev/null 2> /dev/null
 		if [ $? -ne 0 ] ; then
 			break
 		fi

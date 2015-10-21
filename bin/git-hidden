@@ -6,4 +6,4 @@
 #     http://www.apache.org/licenses/LICENSE-2.0
 
 path=$(git rev-parse --show-toplevel)/.git/refs/hidden/
-2>/dev/null find "$path" -type f -print | sed "s:$path/::" | awk 'length($0) > 0'
+2>/dev/null find $path -type f -print | sed "s:$path/::" | awk 'length($0) > 0'
