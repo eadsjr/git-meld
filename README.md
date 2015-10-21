@@ -58,6 +58,7 @@ For more neat git extensions, check out [the git-commands collection!](https://g
 
 # CHANGELOG:
 1. Oct 21, 2015 - ? - Added significant safety checks, features and feedback.
+  * fully working basic case for each command
   * lots of error checking and failsafes added to git-*
   * git-meld now passes most arguments through to merge, and uses git-hide
   * git-hide will delete the hidden branch as cleanup if it fails to delete the original
