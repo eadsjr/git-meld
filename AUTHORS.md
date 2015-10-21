@@ -11,8 +11,8 @@ The [SO answer](http://stackoverflow.com/questions/12293944/how-to-find-the-path
 The [SO answer](http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash) by [Bruno](http://stackoverflow.com/users/117471/bruno-bronosky) provided guidance for parsing inputs as seen in install.sh and git-meld
 
 Special thanks to the freenode.net Web IRC community:
-	#bash
-		Stummi, twkm - ~~alternative error code scheme,~~ naming conventions, syntax bugs
-		ormaaj - bash versioning issues
+  * #bash
+    * Stummi, twkm - naming conventions, syntax bugs
+    * ormaaj - bash versioning issues
 
 Special thanks to Stack Overflow and it's extremely helpful community.
